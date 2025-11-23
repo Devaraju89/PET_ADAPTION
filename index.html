@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PetAdopt — Find Your New Friend</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body{font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;}
+  </style>
+</head>
+<body class="bg-gradient-to-b from-white to-slate-50 min-h-screen text-slate-800">
+
+<header class="sticky top-0 z-40 bg-white/80 backdrop-blur-sm border-b border-slate-200">
+  <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+    <a href="index.html" class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-rose-400 to-indigo-500 text-white font-extrabold">PA</div>
+      <div class="font-semibold">PetAdopt</div>
+    </a>
+
+    <nav class="hidden md:flex items-center gap-6 text-sm">
+      <a href="index.html" class="hover:text-black">Home</a>
+      <a href="about.html" class="hover:text-black">About</a>
+      <a href="contact.html" class="hover:text-black">Contact</a>
+
+      <!-- ACCOUNT DROPDOWN -->
+      <div class="relative group">
+        <button id="accountBtn" class="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-lg">
+          <span id="accIcon">👤</span>
+          <span id="accText">Account</span>
+        </button>
+
+        <div id="accMenu" class="absolute hidden group-hover:block right-0 mt-2 bg-white shadow-lg rounded-lg p-2 w-48">
+          <a id="accLogin" href="login.html" class="block px-3 py-2 hover:bg-slate-100">Login</a>
+          <a id="accSignup" href="signup.html" class="block px-3 py-2 hover:bg-slate-100">Signup</a>
+          <a id="accDashboard" href="dashboard.html" class="hidden px-3 py-2 hover:bg-slate-100">Dashboard</a>
+          <a id="accFavorites" href="favorites.html" class="hidden px-3 py-2 hover:bg-slate-100">Favorites</a>
+          <button id="accLogout" class="hidden w-full text-left px-3 py-2 hover:bg-slate-100 text-rose-600">Logout</button>
+        </div>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 py-12">
+  <h1 class="text-4xl font-bold">Find Your New Friend</h1>
+  <p class="mt-2 text-slate-600">Browse pets available for adoption.</p>
+
+  <!-- PET GRID -->
+  <div id="petGrid" class="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+</main>
+
+<!-- MODAL -->
+<div id="modal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+  <div class="bg-white rounded-xl max-w-3xl w-full mx-4 shadow-xl p-6">
+    <div class="flex gap-6">
+      <img id="modalImg" class="w-48 h-48 rounded-lg object-cover" alt="pet image">
+      <div class="flex-1">
+        <h2 id="modalName" class="text-3xl font-bold"></h2>
+        <p id="modalMeta" class="text-slate-600 mt-1"></p>
+        <p id="modalDesc" class="mt-3 text-slate-700"></p>
+      </div>
+    </div>
+
+    <!-- ADOPTION FORM -->
+    <h3 class="text-xl font-semibold mt-6">Contact Shelter</h3>
+
+    <form id="adoptForm" class="mt-4 grid grid-cols-1 gap-3">
+      <input name="custName" required placeholder="Your full name" class="p-3 border rounded" />
+      <input name="custEmail" required type="email" placeholder="Your email" class="p-3 border rounded" />
+      <input name="custPhone" required placeholder="Phone number" class="p-3 border rounded" />
+      <textarea name="custAddress" required rows="2" placeholder="Full address" class="p-3 border rounded"></textarea>
+      <textarea name="custMsg" rows="2" placeholder="Message for shelter (optional)" class="p-3 border rounded"></textarea>
+
+      <button type="submit" class="bg-emerald-600 text-white p-3 rounded-lg">Send Request</button>
+    </form>
+
+    <div class="mt-4 flex justify-end">
+      <button id="modalClose" class="px-4 py-2 bg-slate-200 rounded">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/*
+  25 PETS — all image URLs chosen to be reliable (Unsplash / Placekitten)
+  You can replace any image URL later.
+*/
+const PETS = [
+  {id:1, name:'Buddy', breed:'Labrador', age:'Young', location:'Mumbai', image:'https://images.unsplash.com/photo-1558788353-f76d92427f16?w=900&q=80', desc:'Friendly and playful.'},
+  {id:2, name:'Luna', breed:'Siamese', age:'Adult', location:'Bengaluru', image:'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=900&q=80', desc:'Gentle and calm.'},
+  {id:3, name:'Mochi', breed:'Hamster', age:'Baby', location:'Delhi', image:'https://images.unsplash.com/photo-1543852786-1cf6624b9987?w=900&q=80', desc:'Tiny and curious.'},
+  {id:4, name:'Rex', breed:'German Shepherd', age:'Adult', location:'Hyderabad', image:'https://images.unsplash.com/photo-1568572933382-74d440642117?w=900&q=80', desc:'Loyal and trained.'},
+  {id:5, name:'Cleo', breed:'Persian', age:'Senior', location:'Pune', image:'https://placekitten.com/800/800', desc:'Loves naps.'},
+
+  {id:6, name:'Bella', breed:'Beagle', age:'Young', location:'Chennai', image:'https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?w=900&q=80', desc:'Playful and friendly.'},
+  {id:7, name:'Simba', breed:'Maine Coon', age:'Adult', location:'Kolkata', image:'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=900&q=80&crop=entropy&cs=tinysrgb', desc:'Big gentle cat.'},
+  {id:8, name:'Ginger', breed:'Shih Tzu', age:'Young', location:'Ahmedabad', image:'https://images.unsplash.com/photo-1507149833265-60c372daea22?w=900&q=80', desc:'Small and affectionate.'},
+  {id:9, name:'Oreo', breed:'Mixed', age:'Adult', location:'Surat', image:'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=900&q=80', desc:'Loves people.'},
+  {id:10, name:'Nala', breed:'Ragdoll', age:'Young', location:'Jaipur', image:'https://images.unsplash.com/photo-1595433562696-6b8f1f7a0a81?w=900&q=80', desc:'Calm and cuddly.'},
+
+  {id:11, name:'Rocky', breed:'Boxer', age:'Adult', location:'Noida', image:'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=900&q=80', desc:'Energetic and loyal.'},
+  {id:12, name:'Milo', breed:'Domestic Short Hair', age:'Baby', location:'Lucknow', image:'https://images.unsplash.com/photo-1543852786-1cf6624b9987?w=900&q=80&crop=entropy', desc:'Playful kitten.'},
+  {id:13, name:'Pumpkin', breed:'Pomeranian', age:'Young', location:'Indore', image:'https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=900&q=80', desc:'Fluffy and lively.'},
+  {id:14, name:'Sadie', breed:'Doberman', age:'Adult', location:'Kochi', image:'https://images.unsplash.com/photo-1508672019048-805c876b67e2?w=900&q=80', desc:'Alert and loyal.'},
+  {id:15, name:'Loki', breed:'Sphynx', age:'Adult', location:'Patna', image:'https://images.unsplash.com/photo-1559235038-4d975c5b63a2?w=900&q=80', desc:'Unique and sweet.'},
+
+  {id:16, name:'Maya', breed:'Cavalier', age:'Young', location:'Vadodara', image:'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=900&q=80', desc:'Soft and gentle.'},
+  {id:17, name:'Biscuit', breed:'Shiba Inu', age:'Adult', location:'Nagpur', image:'https://images.unsplash.com/photo-1537151625747-768eb6cf92b6?w=900&q=80', desc:'Independent and spirited.'},
+  {id:18, name:'Willow', breed:'British Shorthair', age:'Adult', location:'Bhopal', image:'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=900&q=80&ixlib=rb-1.2.1', desc:'Calm and round.'},
+  {id:19, name:'Ziggy', breed:'Border Collie', age:'Young', location:'Trivandrum', image:'https://images.unsplash.com/photo-1516557070062-135b1b61a4a8?w=900&q=80', desc:'Smart and active.'},
+  {id:20, name:'Poppy', breed:'Ferret', age:'Baby', location:'Agra', image:'https://images.unsplash.com/photo-1548786817-3b6b74b6b3f5?w=900&q=80', desc:'Sly and playful.'},
+
+  {id:21, name:'Jasper', breed:'Basset Hound', age:'Adult', location:'Vishakhapatnam', image:'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=900&q=80&auto=format', desc:'Easygoing and loving.'},
+  {id:22, name:'Ruby', breed:'Abyssinian', age:'Young', location:'Mysore', image:'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=900&q=80', desc:'Curious and agile.'},
+  {id:23, name:'Thor', breed:'Alaskan Malamute', age:'Adult', location:'Shimla', image:'https://images.unsplash.com/photo-1525253086316-d0c936c814f8?w=900&q=80', desc:'Strong and friendly.'},
+  {id:24, name:'Pebble', breed:'Guinea Pig', age:'Baby', location:'Shimoga', image:'https://images.unsplash.com/photo-1542417762-9a03f0c05b80?w=900&q=80', desc:'Small and sweet.'},
+  {id:25, name:'Nova', breed:'Mixed', age:'Young', location:'Guwahati', image:'https://images.unsplash.com/photo-1497864149936-3a8f3c9d9a6f?w=900&q=80', desc:'Affectionate and bright.'}
+];
+
+/* RENDER PET CARDS */
+function renderPets(){
+  const grid = document.getElementById("petGrid");
+  grid.innerHTML = "";
+  PETS.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden";
+    card.innerHTML = `
+      <img src="${p.image}" alt="${p.name}" class="w-full h-48 object-cover" />
+      <div class="p-4">
+        <h3 class="font-bold text-lg">${p.name}</h3>
+        <p class="text-slate-600 text-sm">${p.breed} • ${p.age}</p>
+        <p class="text-slate-600 text-sm mt-1">${p.location}</p>
+        <div class="mt-3 flex gap-2">
+          <button class="bg-indigo-600 text-white px-3 py-1.5 rounded openBtn" data-id="${p.id}">View</button>
+          <button class="border px-3 py-1.5 rounded saveBtn" data-id="${p.id}">❤ Save</button>
+        </div>
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  document.querySelectorAll(".openBtn").forEach(btn => btn.onclick = () => openModal(btn.dataset.id));
+  document.querySelectorAll(".saveBtn").forEach(btn => btn.onclick = () => saveFavorite(Number(btn.dataset.id)));
+}
+
+/* FAVORITES: store full objects under 'pa_favs_items' */
+let favorites = JSON.parse(localStorage.getItem('pa_favs_items') || '[]');
+function saveFavorite(id){
+  const pet = PETS.find(p=>p.id===id);
+  if(!pet) return;
+  if(favorites.find(f=>f.id===id)) {
+    favorites = favorites.filter(f=>f.id!==id);
+  } else {
+    favorites.push(pet);
+  }
+  localStorage.setItem('pa_favs_items', JSON.stringify(favorites));
+  alert(favorites.find(f=>f.id===id) ? 'Saved to favorites' : 'Removed from favorites');
+}
+
+/* OPEN / CLOSE MODAL */
+let currentOpenPet = null;
+function openModal(id){
+  const pet = PETS.find(p=>p.id==id);
+  currentOpenPet = pet;
+  document.getElementById('modalImg').src = pet.image;
+  document.getElementById('modalName').textContent = pet.name;
+  document.getElementById('modalMeta').textContent = `${pet.breed} • ${pet.age} • ${pet.location}`;
+  document.getElementById('modalDesc').textContent = pet.desc;
+  document.getElementById('modal').classList.remove('hidden');
+}
+document.getElementById('modalClose').onclick = () => document.getElementById('modal').classList.add('hidden');
+document.getElementById('modal').addEventListener('click', (e)=>{ if(e.target.id==='modal') document.getElementById('modal').classList.add('hidden') });
+
+/* ADOPTION FORM SUBMIT -> save to localStorage and redirect to confirmation.html */
+document.getElementById('adoptForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  if(!currentOpenPet) return alert('No pet selected.');
+
+  const payload = {
+    submittedAt: new Date().toISOString(),
+    pet: {
+      id: currentOpenPet.id,
+      name: currentOpenPet.name,
+      breed: currentOpenPet.breed,
+      age: currentOpenPet.age,
+      location: currentOpenPet.location,
+      image: currentOpenPet.image
+    },
+    customer: {
+      name: this.custName.value.trim(),
+      email: this.custEmail.value.trim(),
+      phone: this.custPhone.value.trim(),
+      address: this.custAddress.value.trim(),
+      message: this.custMsg.value.trim()
+    }
+  };
+
+  // store last request (confirmation page will read this)
+  localStorage.setItem('last_adoption_request', JSON.stringify(payload));
+
+  // close modal and redirect to confirmation page
+  document.getElementById('modal').classList.add('hidden');
+
+  // small delay so modal hides cleanly, then redirect
+  setTimeout(()=> window.location.href = 'confirmation.html', 250);
+});
+
+/* ACCOUNT LOGIC (detect current_user) */
+const user = JSON.parse(localStorage.getItem('current_user') || 'null');
+const loginBtn = document.getElementById("accLogin");
+const signupBtn = document.getElementById("accSignup");
+const dashboardBtn = document.getElementById("accDashboard");
+const favoritesBtn = document.getElementById("accFavorites");
+const logoutBtn = document.getElementById("accLogout");
+
+if(user){
+  loginBtn.classList.add('hidden');
+  signupBtn.classList.add('hidden');
+  dashboardBtn.classList.remove('hidden');
+  favoritesBtn.classList.remove('hidden');
+  logoutBtn.classList.remove('hidden');
+
+  document.getElementById('accIcon').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('accText').textContent = user.name.split(' ')[0];
+} else {
+  loginBtn.classList.remove('hidden');
+  signupBtn.classList.remove('hidden');
+  dashboardBtn.classList.add('hidden');
+  favoritesBtn.classList.add('hidden');
+  logoutBtn.classList.add('hidden');
+}
+
+logoutBtn?.addEventListener('click', ()=>{
+  localStorage.removeItem('current_user');
+  alert('Logged out');
+  window.location.reload();
+});
+
+/* INIT */
+renderPets();
+</script>
+
+</body>
+</html>

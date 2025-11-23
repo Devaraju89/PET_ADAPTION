@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Request Sent — PetAdopt</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+  <div id="box" class="bg-white rounded-xl shadow-lg max-w-md w-full p-6 text-center">
+    <div id="statusIcon" class="text-4xl">✅</div>
+    <h1 class="text-2xl font-bold mt-3">Request Sent Successfully</h1>
+
+    <p id="summary" class="mt-4 text-slate-600"></p>
+
+    <div class="mt-6 flex justify-center gap-3">
+      <a href="index.html" class="px-4 py-2 bg-indigo-600 text-white rounded">Back to Home</a>
+      <a id="toDashboard" href="dashboard.html" class="px-4 py-2 border rounded">Dashboard</a>
+    </div>
+  </div>
+
+<script>
+  const raw = localStorage.getItem('last_adoption_request');
+  if(!raw){
+    // nothing saved — redirect to home
+    window.location.href = 'index.html';
+  } else {
+    try {
+      const data = JSON.parse(raw);
+      const petName = data.pet?.name || 'pet';
+      const custName = data.customer?.name || 'You';
+
+      document.getElementById('summary').textContent = `${custName}, your request for "${petName}" has been sent to the shelter. They will contact you soon.`;
+
+      // optional: clear last request if you want
+      // localStorage.removeItem('last_adoption_request');
+    } catch (err){
+      console.error(err);
+      window.location.href = 'index.html';
+    }
+  }
+</script>
+
+</body>
+</html>
+
